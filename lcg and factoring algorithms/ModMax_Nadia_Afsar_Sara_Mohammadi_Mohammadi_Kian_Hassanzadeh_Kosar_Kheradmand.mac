@@ -1,0 +1,433 @@
+/* ModMax */
+/* Nadia Afsar: nadia.afsar13@sharif.edu */
+/* Sara Mohammadi Mohammadi: sara.mm11@sharif.edu */
+/* Kian Hassanzadeh: kian.hasanzadeh@gmail.com */
+/* Kosar Kheradmand: kosar.kheradmand05@sharif.edu */
+/* Q1----------------- */
+/* helper: divides the real and image part of guassian number */
+zi_div(a, b) := block(
+    [u, v, q],
+    u: round(realpart(a/b)),
+    v: round(imagpart(a/b)),
+    q: u + %i*v,
+    [q, expand(a - b*q)]
+)$
+
+/* 1 */
+zi_gcd(a, b) := block(
+    [x_0: 1, y_0: 0, x_1: 0, y_1: 1, x_2, y_2, q, r, v_0: a, v_1: b, div],
+    while expand(v_1) # 0 do (
+        div: zi_div(v_0, v_1),
+        q: div[1],
+        r: div[2],
+        v_0: v_1,
+        v_1: r,
+        x_2: x_0 - q*x_1,
+        y_2: y_0 - q*y_1,
+        x_0: x_1, y_0: y_1,
+        x_1: x_2, y_1: y_2
+    ),
+    [x_0, y_0, v_0]
+)$
+
+/* 2 */
+zi_inv_mod(n, m) := block(
+    [g, a, c, norm_c, inv],
+    g: zi_gcd(n, m),
+    a: g[1],
+    c: g[3],
+    norm_c: realpart(c)^2 + imagpart(c)^2,
+    if  norm_c = 1 then (
+        inv: expand(a / c),
+        mod(zi_div(inv, m)[2], m)
+    ) else
+        false
+)$
+
+/* 3 */
+zi_lcm([g_integers]) := block(
+    if length(g_integers) = 0 then(
+        return(1)
+    ),
+    [result: 1, i, g],
+    result: g_integers[1],
+    for i: 2 thru length(g_integers) do (
+        if result = 0 or g_integers[i] = 0 then return(0),
+        g: zi_gcd(result, g_integers[i])[3],
+        result: expand((result * g_integers[i]) / g)
+    ),
+    result
+)$
+
+/* 4 */
+zi_mod(a, b) := block(
+    if b = 0 then return(false),
+    [u, v, f_u, c_u, f_v, c_v, q, r, i, result],
+    u: realpart(a/b),
+    v: imagpart(a/b),
+    f_u: floor(u), c_u: ceiling(u),
+    f_v: floor(v), c_v: ceiling(v),
+    q: listify(setify([f_u + %i*f_v, f_u + %i*c_v, c_u + %i*f_v, c_u + %i*c_v])),
+    result: [],
+    for i:1 thru length(q) do (
+        r: expand(a - b*q[i]),
+        result: endcons([q[i], r], result)
+    ),
+    result
+)$
+
+/* 5 */
+zi_totient(a) := block(
+    [norm, u_max, v_max, count, b, g, u, v],
+    norm: realpart(a)^2 + imagpart(a)^2,
+    if norm_a = 0 then
+        return(0),
+    u_max: floor(sqrt(norm)),
+    count: 0,
+    if a = 1 then count: 1,
+    for u: 0 thru u_max do (
+        v_max: floor(sqrt(norm - u^2)),
+        for v: 0 thru v_max do (
+            b: u + %i * v,
+            if b # 0 then (
+                g: zi_gcd(a, b),
+                if (realpart(g[3])^2 + imagpart(g[3])^2) = 1 then (
+                    count: count + 1
+                )
+            )
+        )
+    ),
+    count
+)$
+
+/* 6 */
+zi_reduced_residues(m) := block(
+    [a, b, bound, x, y, z, w, u, v, g, rrs],
+   
+    a : realpart(m),
+    b : imagpart(m),
+    bound : abs(a) + abs(b),
+    rrs : [],
+    for u: -bound thru bound do (
+        for v: -bound thru bound do (
+            z : u + %i * v,
+            w :  expand(z / m),
+            x : realpart(w),
+            y : imagpart(w),
+            if (x >= 0 and x <1 and y >= 0 and y <1) then (
+                g : zi_gcd(z, m)[3],
+                if (realpart(g)^2 + imagpart(g)^2 = 1) then (
+                    rrs : endcons(z, rrs)
+                )
+            )
+        )
+    ),
+    return(rrs)
+)$
+
+/* 7 */
+zi_order(a, m) := block(
+    [g, norm_g, n, base],
+    g: zi_gcd(a, m)[3],
+    norm_g: realpart(g)^2 + imagpart(g)^2,
+    if norm_g # 1 then(
+        return(false)
+    ),
+    n: 1,
+    base: zi_div(a, m)[2],
+    while expand(realpart(base)^2 + imagpart(base)^2) # 1 do (
+        base: zi_div(base * a, m)[2],
+        n: n + 1.
+    ),
+    n
+)$
+
+/* 8 */
+zi_power_mod(a, n, m) := block(
+    if n = 0 then
+        return(zi_mod(1, m)[1][2]),
+    [result: 1, base: zi_mod(a, m)[1][2], e: n],
+    while e > 0 do (
+        if mod(e, 2) = 1 then
+            result: zi_mod(result * base, m)[1][2],
+        e: floor(e / 2),
+        base: zi_mod(base * base, m)[1][2]
+    ),
+    result
+)$
+
+/* 9 */
+zi_max([g_integers]) := block(
+    [max: -1, result: [], n, norm],
+    for n in g_integers do (
+        norm: realpart(n)^2 + imagpart(n)^2,
+        if norm > max then (
+            max: norm,
+            result: [n]
+        ) elseif norm = max then (
+            result: endcons(n, result)
+        )
+    ),
+    result
+  )$
+
+zi_min([g_integers]) := block(
+    [min: inf, result: [], n, norm],
+    for n in g_integers do (
+        norm: realpart(n)^2 + imagpart(n)^2,
+        if norm < min then (
+            min: norm,
+            result: [n]
+        ) elseif norm = min then (
+            result: endcons(n, result)
+        )
+    ),
+    result
+)$
+
+/* 10 */
+zi_primep(a) := block(
+    [u: abs(realpart(a)), v: abs(imagpart(a)), norm],
+    if u = 0 and v = 0 then
+        return(false),
+    if u # 0 and v # 0 then (
+        norm: u^2 + v^2,
+        return(primep(norm))
+    ) else (
+        if u = 0 then
+            return(primep(v) and mod(v, 4) = 3)
+        else
+            return(primep(u) and mod(u, 4) = 3)
+    )
+)$
+
+/* 11 */
+zi_chinese(r_list, m_list) := block(
+    [n, M: 1, z: 0, g, diff, rem, i, j, e, c: 0, result, r],
+    n : length(r_list),
+    if n = 0 then return(false),
+
+    z: r_list[1],
+    M: m_list[1],
+    for i: 2 thru n do (
+        g: zi_gcd(M, m_list[i]),
+        diff: expand(z-r_list[i]),
+        rem: zi_div(diff, g[3])[2],
+        if  rem # 0 then(
+            c: 1,
+            return(false)
+        ),
+        z: zi_div(r_list[i] * M * g[1] + z * m_list[i] * g[2], g[3])[1],
+        M: zi_lcm(M, m_list[i])
+    ),
+    if c = 1 then return(false),
+    result: zi_mod(z, M),
+    r: result[1][2],
+    for e: 1 thru length(result) do (
+        if abs(result[e][2])< abs(r) then
+            r: result[e][2]
+    ),
+    r
+)$
+
+/* Q2------------- */
+initial_randseed: 1;
+
+/* helper: produes the integer from its factors */
+produce_integer(factors):= block(
+    [m: 1],
+    for i: 1 thru length(factors) do (
+        p_i: (factors[i])[1],
+        e_i: (factors[i])[2],
+        if p_i # 0 then(
+        m: m * (p_i^e_i)
+        ) else m: m * 0
+    ),
+    m
+)$
+
+/* helper: finds c (the increment) */
+find_increment(m1):= block(
+    [c:2],
+    catch(
+        while true do (
+            if gcd(m1, c) = 1 then throw(c),
+            c: c + 1
+        )
+    )
+)$
+
+/* helper: finds a (the multiplier) */
+find_multiplier(factors2, m2):= block(
+    [ap: 1],
+    for i:1 thru length(factors2) do(
+        p: (factors2[i])[1],
+        ap: ap*p
+    ),
+    if mod(m2, 4) = 0 then ap:ap*2,
+    ap+1
+)$
+
+/* 1 */
+lcg_random_parameters(f):= block(
+    [m, a, c],
+    if listp(f) then(
+        if length(f) # 0 then (
+            if listp(f[1]) then (
+                m: produce_integer(f),
+                a: find_multiplier(f, m),
+                c: find_increment(m),
+                [m, a, c]
+            )
+        )
+    )
+)$
+
+/* 2 */
+lcg_nextrand(L1,x):= block(
+    [m: L1[1], a: L1[2], c: L1[3]],
+    if listp(L1) then (
+        if length(L1) = 3 then (
+            mod(a*x+c, m)
+        )
+    )
+)$
+
+/* 3 */
+lcg_rand(L2):= block(
+    if listp(L2) then (
+        if length(L2) = 3 then (
+            initial_randseed: lcg_nextrand(L2, initial_randseed),
+            initial_randseed
+        )
+    )
+)$
+
+/* 4 */
+lcg_list(params,n):= block(
+    [L: [], x: 0],
+    if listp(params) then (
+        if length(params) = 3 then (
+            for i:1 thru n do(
+                x: lcg_rand(params),
+                L: endcons(x, L)
+            ),
+            L
+        )
+    )
+)$
+
+/* 5 */
+/* finds the perid of given list */
+find_period(L3):= block(
+    [newL: []],
+    newL: endcons(L3[1], newL),
+    for i: 2 thru length(L3) do(
+        if L3[i] # newL[1] then newL: endcons(L3[i], newL) else return(newL)
+    ), newL
+)$
+
+/* checks if the length of period is m */
+verify(factors3):= block(
+    [params: [], period: [], list:[]],
+    params: lcg_random_parameters(factors3),
+    list: lcg_list(params, params[1]*10),
+    period: find_period(list), 
+    if length(period) = params[1] then return(true) else return(false) 
+)$
+
+/* Q3---------------- */
+pollard_rho(N, c, restarts, iterations) := block(
+    [x0, x, y, d, i, result],
+    result: false,
+    for restart: 1 thru restarts do (
+        x0: random(N),
+        x: x0,
+        y: x0,
+        i: 0,
+        d: 1,
+        while i < iterations and d = 1 do (
+            i: i + 1,
+            x: mod(x^2 + c, N),
+            y: mod(mod(y^2 + c, N)^2 + c, N),
+            d: gcd(abs(x - y), N)
+        ),
+        if d > 1 and d < N then (
+            result: [d, x0, i],
+            restart: restarts + 1
+        ),
+        if d = N then result: false
+    ),
+    result
+);
+
+/* Q4---------------- */
+pollard_pm1(N,B_max,trials) := catch(block
+(
+    [m:1, found:false,
+    a:1, d:1, g:1, B:10,
+    P, p_times_k:B, power:0, p, times:0, p_size:0],
+
+    if N < 2 or not integerp(N) then
+    (
+        print("N must be an integer and N>1, not ", N),
+        throw(false)
+    )
+    else
+    (
+        if B >= B_max or trials < 1 then
+        (
+            print("B_max must be bigger than 10, trials must be at least 1"),
+            throw(false)
+        ),
+
+        while B < B_max do
+        (
+            m: 1,
+            P: primes(1,B),
+            p_size: length(P),
+
+            for k:1 thru p_size do
+            (
+                power: 0,
+                p: P[k],
+                p_times_k: p,
+
+                while p_times_k <= B do
+                (
+                    power: power + 1,
+                    p_times_k: p_times_k * p
+                ),
+
+                m: m * (p^power)
+            ),
+
+            for j:1 thru trials do
+            (
+                a: random(N-1) + 1,
+                d: gcd(a,N),
+
+                if d > 1 then
+                (
+                    print("d is bigger than 1, d =", d),
+                    throw(d)
+                )
+                else
+                (
+                    g: gcd((a^m)-1, N),
+
+                    if g > 1 and g < N then
+                    (
+                        print("found generator: ", [g,B,a,m]),
+                        throw([g,B,a,m])
+                    )
+                )
+            ),
+
+            B: ceiling(B^(4/3))
+        ),
+
+        throw(false)
+    )
+)
+)$
