@@ -1,0 +1,330 @@
+/* ModMax */
+/* Nadia Afsar: nadia.afsar13@sharif.edu */
+/* Sara Mohammadi Mohammadi: sara.mm11@sharif.edu */
+/* Kian Hassanzadeh: kian.hasanzadeh@gmail.com */
+/* Kosar Kheradmand: kosar.kheradmand05@sharif.edu */
+/* Q1----------------- */
+bqf_red_step(L) := block(
+    [a: L[1], b: L[2], c: L[3], m, P, L_prime],
+    
+    if (a < 0 or c<0) then (
+        return("Invalid")
+    ),
+    if (a > c or (a = c and b < 0)) then (
+        P : matrix(
+            [0, 1],
+            [-1, 0]
+        ),
+        L_prime : [c, -b, a]
+    ) elseif ((b <= -a and b # 0) or b > a) then (
+        m : floor((a - b) / (2 * a)),
+        P : matrix(
+            [1, m],
+            [0, 1]
+        ),
+        L_prime : [a, 2*a*m + b, a*m^2 + b*m + c]
+    ) else (
+        P : matrix(
+            [1, 0],
+            [0, 1]
+        ),
+        L_prime : L
+    ),
+    return([L_prime, P])
+)$
+
+bqf_red(L) := block(
+    [red, L_prime, P_prime, 
+        P: matrix(
+            [1, 0], 
+            [0, 1]
+        )
+    ],
+    
+    if (a < 0 or c < 0) then (
+        return("Invalid")
+    ),
+    while (true) do (
+        red : bqf_red_step(L),
+        L_prime : red[1],
+        P_prime : red[2],
+        if (L[1] = L_prime[1] and L[2] = L_prime[2] and L[3] = L_prime[3]) then (
+            return([L, P])
+        ),
+        L : L_prime,
+        P : P . P_prime
+        )
+)$
+
+/*helper: cipolla method to find square roots modulo p in order to find desired form */
+cipolla(a,p) := block(
+    [q, x, sqrts],
+    
+    if (mod(a, p) = 0) then (
+        return([0])
+    ),
+    if (jacobi(a,p) # 1) then (
+        return([])
+    ),
+    q : random(p),
+    while (jacobi(q^2 - a, p) # -1)  do (
+        q : random(p)
+    ),
+    
+    local(modulus, algebraic),
+    modulus : p,
+    algebraic : true,
+    tellrat(delta^2 - (q^2 - a)),
+    x : rat((q + delta)^((p + 1) / 2)),
+    untellrat(),
+    x : ratdisrep(x),
+    
+    sqrts : mod([x, -x], p),
+    return(sqrts)
+)$
+bqf_primeform(p, d) := block(
+    [sqrts, b0, d0, b, c],
+    
+    if (p = 2) then (
+        d0 : mod(d, 8),
+        if (d0 = 0) then (
+            b : 0
+        ) elseif (d0 = 1) then (
+            b : 1
+        ) elseif (d0 = 4) then (
+            b : 2
+        ) else (
+            return("No such form exists")
+        ),
+        c : (b^2 - d) / 8,
+        return([2, b, c])
+    )
+    else (
+        sqrts : cipolla(d, p),
+        if (length(sqrts) = 0) then(
+            return("No such form exists")
+        ),
+        b0 : sqrts[1],
+        if (mod(b0, 2) = mod(d, 2)) then (
+            b : b0
+        ) else (
+            b : b0 + p
+        ),
+        c : (b^2 - d) / (4 * p),
+        return([p, b, c])
+    )
+)$
+
+bqf_solve(L,p) := block(
+    [d, L_prime, red, red_prime, 
+        L1, P1, L1_prime, P1_prime,
+        invP, x0, y0],
+
+    d: L[2]^2 - 4 * L[1] * L[3],
+    L_prime: bqf_primeform(p, d),
+    red : bqf_red(L),
+    red_prime : bqf_red(L_prime),
+    L1 : red[1],
+    P1 : red[2],
+    L1_prime : red_prime[1],
+    P1_prime : red_prime[2],
+    invP : P1 . invert(P1_prime),
+    x0: invP[1, 1],
+    y0: invP[2, 1],
+
+    return([x0, y0])
+)$
+
+/* Q2----------------- */
+cfr(x,n):= block(
+    [xp, new_x, fpprec : 4*n, L: []],
+    
+    new_x : bfloat(x),
+    for i:1 thru n do(
+        xp: floor(new_x),
+        L: endcons(xp, L),
+        if new_x - xp = 0 then return(L)
+        else new_x: 1/(new_x - xp)
+    ),
+    return(L)
+)$ 
+
+/*helper: needed to find recurring decimal digits in cfr_periodic*/
+get_coeffs(expr1):= block( /* r = (P + s * sqrt(D)) / Q */
+    [expr, P: 0, Q: 1, D, s: 1, a, x, y],
+    expr: expr1,
+    if not atom(expr) then (
+        if op(expr) = "-" then(
+            expr: part(expr, 1),
+            s: -1
+        ),
+        if op(expr) = "/" then(
+            a: part(expr, 1),
+            Q: part(expr, 2),
+            if not atom(a) then(
+                if op(a) = "+" then(
+                    P: part(a, 2),
+                    a: part(a, 1)
+                ),
+                if op(a) = sqrt then(
+                    D: part(a, 1)
+                )
+                else if op(a) = "*" then(
+                    D: (part(a, 1))^2,
+                    x: part(a, 2),
+                    D: D * part(x, 1)
+                )
+                else if op(a) = "^" then(
+                    x: part(a, 1),
+                    y: part(a, 2),
+                    D: x^(2*y)
+                )
+                
+            ) else return
+        )
+        else if op(expr) = "+" then(
+            a: part(expr, 1),
+            P: part(expr, 2)
+        ) else a: expr, 
+        if not atom(a) then(
+            if op(a) = sqrt then(
+                D: part(a, 1)
+            )
+            else if op(a) = "*" then(
+                D: (part(a, 1))^2,
+                x: part(a, 2),
+                D: D * part(x, 1)
+            )
+            else if op(a) = "^" then(
+                    x: part(a, 1),
+                    y: part(a, 2),
+                    D: x^(2*y)
+            )
+        )
+    ),
+    return([P, D, Q, s])        
+)$
+cfr_periodic(r):= block(
+    [coeffs, P, D, Q, s, expr2, f: 0, found: false, a, L: [], seen: [], S, period: [], index, ip:0],
+    expr2: radcan(r),
+    if op(expr2) = "-" then(
+        f: floor(r),
+        r: r - f,
+        expr2: radcan(r)
+    ),
+    coeffs: get_coeffs(expr2),
+    P: coeffs[1],
+    D: coeffs[2],
+    Q: coeffs[3],
+    S: floor(sqrt(D)), 
+    L: endcons(floor((P+S)/Q) + f, L),
+    while not found do (
+        a: floor((P+S)/Q), 
+        if ip # 0 then(
+            seen: endcons([P, Q, a], seen)
+        ) else ip: 1,
+        P: a*Q - P,
+        Q: (D-P^2)/Q,
+        for i: 1 thru length(seen) do(
+            if (seen[i])[1] = P and (seen[i])[2] = Q then(
+                index: i,
+                found: true,
+                for j: i thru length(seen) do(
+                    period: endcons((seen[j])[3], period)
+                )
+            )
+        )
+    ),
+    for i:2 thru index-1 do(
+        L: endcons((seen[i])[3], L)
+    ),
+    L: endcons(period, L),
+    return(L)
+)$
+
+cfr_best_approx(r,n):=
+block([cf,p0,q0,p1,q1,p_temp,q_temp,a_i,i,p,q],
+    cf:cfr(r,100), /* continued fractions upto 100 (a big threshold which can be improved)*/
+    p0:0,   q0:1,
+    p1:1,   q1:0,
+    p:0,     q:1,
+    i:1,
+    while i<=length(cf) do(
+        a_i:cf[i],
+        p_temp:a_i*p1+p0,
+        q_temp:a_i*q1+q0,
+
+        if q_temp>n then(
+            return(p/q)
+        ), /*ensures mot exceeding n*/
+        p:p_temp,
+        q:q_temp,
+
+        p0:p1,
+        p1:p,
+        q0:q1,
+        q1:q,
+        i:i+1
+    ),
+    if  q>0 then(
+        p/q
+    )
+)$
+
+pell(d):=
+block(
+    [cf,p0,q0,p1,q1,period,a_i,p,q,i,found:false,sqrt_d],
+    if d<=0 or not integerp(d) then(
+        print("d must be a positive integer."),
+        return(null)
+    ),
+    sqrt_d:sqrt(d),
+    if integerp(sqrt_d)then(
+        print("d needs to be a non-square integer"),
+        return([1,0])
+    ),
+    cf:cfr_periodic(sqrt_d),
+    a_i:cf[1],
+    period:cf[2],
+    p0:0,   q0:1,
+    p1:1,   q1:0,
+    p:0,     q:1,
+    i:1,
+    while not found do(
+          p:a_i*p1+p0,
+         q:a_i*q1+q0,
+         if p^2-d*q^2=1 then(
+               found: true,
+              return([p,q])
+        ),
+        p0:p1,
+        p1:p,
+        q0:q1,
+        q1:q,
+        i:i+1,
+        a_i:period[mod(i-2,length(period))+1] /* restart from the begining of period */
+    )
+)$
+
+/* Q3----------------- */
+hensel_lifting(expr, var, p, r, a) := block(
+    [f, df, val, df_a, val_div, roots, t],
+    f : expr,
+    df : diff(f, var),
+    val : subst(var = a, f),
+    df_a : subst(var = a, df),
+
+    if not integerp(val) then return([]),
+    if mod(val, p^r) # 0 then return([]),
+    val_div : ratsimp(val / p^r),
+
+    if not integerp(val_div) then return([]),
+
+    roots : [],
+    for t : 0 thru p - 1 do (
+        if mod(df_a * t + val_div, p) = 0 then
+            roots : cons(mod(a + t * p^r, p^(r + 1)), roots)
+    ),
+    reverse(roots)
+)$
+
