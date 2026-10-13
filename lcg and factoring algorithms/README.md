@@ -2,7 +2,7 @@
 
 A Maxima implementation of **Gaussian integer arithmetic**, **linear congruential generators**, and **two classical factoring algorithms** (Pollard's rho and Pollard's p−1). These are foundational tools in **computational number theory** with direct applications in **cryptanalysis**, especially against RSA.
 
-## 👥 Team "ModMax"
+##  Team "ModMax"
 
 | Member | Primary Contributions |
 |--------|----------------------|
@@ -13,7 +13,7 @@ A Maxima implementation of **Gaussian integer arithmetic**, **linear congruentia
 
 > **Note:** While each member led specific questions, all team members contributed to debugging, algorithm design, and code review throughout the project.
 
-## 📋 Implemented Exercises
+##  Implemented Exercises
 
 | # | Topic | Key Functions |
 |---|-------|---------------|
@@ -24,7 +24,7 @@ A Maxima implementation of **Gaussian integer arithmetic**, **linear congruentia
 
 ⭐ = Implemented by Nadia Afsar
 
-## 🔍 Detailed Contributions
+##  Detailed Contributions
 
 ### Question 2 — Linear Congruential Generators (Implemented by Nadia Afsar)
 
