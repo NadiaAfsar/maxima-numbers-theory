@@ -2,7 +2,7 @@
 
 A Maxima implementation of classical number theory algorithms with **direct applications in cryptanalysis and modern cryptography**. Covers Gaussian integer arithmetic, factoring algorithms (Pollard's ρ and p−1), binary quadratic forms, continued fractions, the Pell equation, and Hensel lifting.
 
-## 📖 Overview
+##  Overview
 
 This repository contains two comprehensive number theory homework assignments, both implemented in **Maxima** (Computer Algebra System). Together they cover:
 
@@ -11,7 +11,7 @@ This repository contains two comprehensive number theory homework assignments, b
 
 These algorithms are not just mathematical curiosities — they are **the tools of classical cryptanalysis** (Wiener's attack on RSA, Buchmann's class group cryptosystem, Coppersmith's method) and **the foundation of modern lattice-based cryptography** (NTRU, Ring-LWE).
 
-## 🔍 Summary of My Contributions
+##  Summary of My Contributions
 
 ### Gaussian Integers & Factoring
 - **Q2: Linear Congruential Generators (LCG)** — Full implementation of `lcg_random_parameters`, `lcg_nextrand`, `lcg_rand`, `lcg_list`, and `verify`. Constructed parameters `a` and `c` directly from the prime factorization of `m` using the **Hull–Dobell theorem**, rather than by random trial-and-error.
@@ -23,7 +23,7 @@ For the remaining exercises, I contributed to **algorithm design**, **debugging*
 
 ---
 
-## ✨ Cross-Project Highlights
+##  Cross-Project Highlights
 
 ### 1. Operations over Gaussian Integers
 Gaussian integer arithmetic is the **algebraic foundation** of:
@@ -51,7 +51,7 @@ Hensel lifting is the **p-adic analogue** of Newton's method, and it is the key 
 
 ---
 
-## 🛠️ Technologies
+##  Technologies
 
 - **Tool:** Maxima (Computer Algebra System)
 - **Language:** Maxima script (`.mac` files)
