@@ -2,7 +2,7 @@
 
 A Maxima implementation of **binary quadratic form reduction**, **continued fraction expansions**, and **Hensel lifting**. These are classical tools in **computational number theory** with **direct applications in cryptanalysis** — particularly against RSA (Wiener's attack), in class group cryptosystems (Buchmann), and in modern lattice-based methods (Coppersmith, NTRU).
 
-## 👥 Team "ModMax"
+##  Team "ModMax"
 
 | Member | Primary Contributions |
 |--------|----------------------|
@@ -13,7 +13,7 @@ A Maxima implementation of **binary quadratic form reduction**, **continued frac
 
 > **Note:** While each member led specific questions, all team members contributed to debugging, algorithm design, and code review throughout the project.
 
-## 📋 Implemented Exercises
+##  Implemented Exercises
 
 | # | Topic | Key Functions |
 |---|-------|---------------|
@@ -23,7 +23,7 @@ A Maxima implementation of **binary quadratic form reduction**, **continued frac
 
 ⭐ = Implemented by Nadia Afsar
 
-## 🔍 Detailed Contributions
+##  Detailed Contributions
 
 ### Question 2 — Continued Fractions (Parts 1–2 Implemented by Nadia Afsar)
 
